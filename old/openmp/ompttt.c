@@ -1,7 +1,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include<omp.h>
+#include <omp.h>
+#define CHUNKSIZE 100
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -70,7 +71,7 @@ int threeFound = 0;
 	int index;
 	for(index = 0; index < 9; ++index) { // for all 9 squares
 		if(board[ConvertTo25[index]] == us) { // if player move
-			if(FindThreeInARow(board, ConvertTo25[index], us) == 3) {				
+			if(FindThreeInARow(board, ConvertTo25[index], us) == 3) {
 				threeFound = 1; // if move results 3 in row,confirm 
 				break;
 			}
@@ -104,8 +105,7 @@ int MinMax (int	*board, int side) {
 	int bestMove = -1; // best move with score
 	int Move; // current move
 	int index; // indexing for loop
-	
-	if(ply > maxPly) // if current pos depper than max dep
+if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
 	
@@ -114,7 +114,7 @@ int MinMax (int	*board, int side) {
 		if(score != 0) { // if draw					
 			return score; // return score, stop searching, game won
 		}		
-	}
+}
 	
 	// if no win, fill Move List
 	for(index = 0; index < 9; ++index) {
@@ -126,36 +126,29 @@ int MinMax (int	*board, int side) {
 	// loop all moves - put on board
 	for(index = 0; index < MoveCount; ++index) {
 		Move = MoveList[index];
-		board[Move] = side;			
+		board[Move] = side;	
+		
 		ply++; // increment ply
 		score = -MinMax(board, side^1); // for opposing side
-if(score > bestScore) { // if score is best score (will be for first move)			
+		if(score > bestScore) { // if score is best score (will be for first move)			
 			bestScore = score;	
 			bestMove = Move;
-}
-#pragma omp parallel sections
-{
- #pragma omp section
-   {
+		}
 	// undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
-	} // end section
- #pragma omp section
-   {
+	}
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
 		bestScore = FindThreeInARowAllBoard(board, side);	
 }
-} // section
-} // parallel section
 	// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
 }
-}
+
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
 	int index = 0; /* index for looping */
 
@@ -232,14 +225,16 @@ int GetWinningMove(int *board, const int side) {
 	return ourMove;
 }
 
-
 int GetComputerMove(int *board, const int side) {
+printf("************************************\n");
+printf("%s COMPUTER TURN: \n", KBLU);
+printf("************************************\n");
 	ply=0;
-	positions=0;
-	maxPly=0;
-	int best = MinMax(board, side);
-	printf("Finished searching through positions in tree:%d max depth:%d best move:%d\n",positions,maxPly,best);
-	return best;
+      	positions=0;
+        maxPly=0;
+        int best = MinMax(board, side);
+        printf("Finished searching through positions in tree:%d max depth:%d best move:%d\n",positions,maxPly,best);
+return best;
 }
 
 int GetHumanMove(const int *board) {
@@ -250,7 +245,10 @@ int GetHumanMove(const int *board) {
 	int move = -1;
 	
 	while (moveOk == 0) {
-	
+
+printf("************************************\n");
+printf("%s PLAYER TURN: \n", KRED);
+printf("************************************\n");
 		printf("Please enter a move from 1 to 9:");		
 		fgets(userInput, 3, stdin);
 		fflush(stdin); /* fgets take first 3 chars and flush rest */ 
@@ -276,7 +274,7 @@ int GetHumanMove(const int *board) {
 		
 		if( board[ConvertTo25[move]]!=EMPTY) {
 			move=-1;
-			printf("Shucks! Square not available\n");
+			printf("Shucks! Square not available.\n");
 			continue;
 		}
 		moveOk = 1;
@@ -294,11 +292,46 @@ int HasEmpty(const int *board) { /* Has board got empty sq */
 }
 
 void MakeMove (int *board, const int sq, const side) {
-	board[sq] = side; /* pos of square equal the side (either x or o) */
+int tid;
+int nthreads;
+int chunk;
+ omp_set_dynamic(0);
+ 
+/* Fork a team of threads with each thread having a private tid variable */
+/* Only master thread does this */
+  
+   printf("1st Parallel Region:\n");
+ #pragma omp parallel private(tid)
+   {
+tid = omp_get_thread_num();
+board[sq] = side; /* pos of square equal the side (either x or o) */
+printf("thread no %d", board[sq], tid);
+chunk = CHUNKSIZE;
+  
+ }  /* end of parallel region */
+ 
+   printf("\n************************************\n");
+   printf("Master thread doing serial work here\n");
+   printf("************************************\n");
+ 
+   printf("2nd Parallel Region:\n");
+ #pragma omp parallel private(tid)
+   {
+/* Only master thread does this */
+   if (tid == 0)
+     {
+     nthreads = omp_get_num_threads();
+     printf("Number of threads = %d\n", nthreads);
+printf("thread no = %d\n", tid);
+   }  /* All threads join master thread and terminate */
+
+   }  /* end of parallel region */
 }
 
 void RunGame() {
-printf("%s TIC TAC TOE \n", KRED);
+printf("************************************\n");
+printf("%s TIC TAC TOE \n", KNRM);
+printf("************************************\n");
 	int GameOver = 0;
 	int Side = NOUGHTS;
 	int LastMoveMade = 0;
@@ -306,22 +339,18 @@ printf("%s TIC TAC TOE \n", KRED);
 
 	InitialiseBoard(&board[0]);
 	PrintBoard(&board[0]);
-
-	while (!GameOver) { // while game is not over
+ 	while (!GameOver) { // while game is not over
 	if (Side==NOUGHTS) {
 		LastMoveMade = GetHumanMove (&board[0]);
 		MakeMove(&board[0], LastMoveMade, Side);
 		Side=CROSSES;
-printf("%s COMPUTER MOVE \n", KBLU);	
 }
-	else {
+else {
 	LastMoveMade = GetComputerMove(&board[0], Side);
 	MakeMove(&board[0], LastMoveMade, Side);
 	Side=NOUGHTS;
 	PrintBoard(&board[0]);
-printf("%s PLAYER MOVE \n", KNRM);
-
-	}
+}
 
 // if three in a row exists Game is over
 		if( FindThreeInARow(board, LastMoveMade, Side ^ 1) == 3) {
@@ -339,12 +368,11 @@ printf("%s PLAYER MOVE \n", KNRM);
 	GameOver = 1;
 	printf("It's a draw! Come on, try harder for the win next time!");
 }
-	}
+}
 	}
 
 int main() {
-	srand(time(NULL)); /* seed random no generator - moves on board randomly */
+ 	srand(time(NULL)); /* seed random no generator - moves on board randomly */
 	RunGame();
-	return 0;
-	}	
-
+return 0;
+}
