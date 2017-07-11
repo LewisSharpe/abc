@@ -1,3 +1,10 @@
+// Tic Tac Toe - Sequential C version
+// Lewis Sharpe
+// 07.06.2017 
+
+// compile: gcc -o gm_ttt gm_ttt.c
+// run: ./gm_ttt
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -16,16 +23,14 @@
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
 
-// var definitions
+/* var definitions */
 
 const int Directions[4] = {1, 5, 4, 6}; // times by -1 to go opposite direction
-
 const int ConvertTo25[9] = { /* positions in 25 array */
 	6,7,8,
 	11,12,13,
 	16,17,18,
 };
-
 const int InMiddle = 4;
 const int Corners[4] = { 0, 2, 6, 8 };
 
@@ -44,7 +49,6 @@ int GetNumForDir (int startSq, const int dir, const int *board, const int us) {
 }
 	return found;
 }
-
 
 int FindThreeInARow(const int *board, const int ourindex, const int us) {
 
@@ -225,7 +229,6 @@ int GetWinningMove(int *board, const int side) {
 	} 
 	return ourMove;
 }
-
 
 int GetComputerMove(int *board, const int side) {
 	ply=0;

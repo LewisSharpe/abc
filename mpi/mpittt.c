@@ -1,14 +1,14 @@
-// Tic Tac Toe - OpenMP C Parallel/Distributed version
+// Tic Tac Toe - C + MPI Parallel/Distributed version
 // Lewis Sharpe
-// 07.06.2017 
+// 26.06.2017
 
-// compile: gcc -fopenmp -o ompttt ompttt.c
-// run: ./ompttt
+// compile: mpicc -o mpittt mpittt.c
+// run: mpiexec -n 2 ./mpittt
 
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include<omp.h>
+#include "mpi.h"
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -24,13 +24,16 @@
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
 
-/* var definitions */
+// var definitions
+
 const int Directions[4] = {1, 5, 4, 6}; // times by -1 to go opposite direction
+
 const int ConvertTo25[9] = { /* positions in 25 array */
 	6,7,8,
 	11,12,13,
 	16,17,18,
 };
+
 const int InMiddle = 4;
 const int Corners[4] = { 0, 2, 6, 8 };
 
@@ -99,7 +102,13 @@ int MinMax (int	*board, int side) {
 // loop	moves , make move, min max on move to get score
 // assess best score
 // end moves return bestscore
-	
+
+// Find out rank, size
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
 // defintions
 	int MoveList[9]; // 9 pos sqs on board
 	int MoveCount = 0; // count of move
@@ -108,7 +117,13 @@ int MinMax (int	*board, int side) {
 	int bestMove = -1; // best move with score
 	int Move; // current move
 	int index; // indexing for loop
-	
+
+// We are assuming at least 2 processes for this task
+  if (world_size < 2) {
+    fprintf(stderr, "World size must be greater than 1 for %s\n");
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  }
+
 	if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
@@ -116,17 +131,17 @@ int MinMax (int	*board, int side) {
 	if(ply > 0) {
 		score = EvalForWin(board, side); // is current pos a win
 		if(score != 0) { // if draw					
-			return score; // return score, stop searching, game won
+		return score; // return score, stop searching, game won
 		}		
 	}
-	
+
 	// if no win, fill Move List
 	for(index = 0; index < 9; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
 			MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
 		}
 	}
-
+	
 	// loop all moves - put on board
 	for(index = 0; index < MoveCount; ++index) {
 		Move = MoveList[index];
@@ -136,36 +151,25 @@ int MinMax (int	*board, int side) {
 if(score > bestScore) { // if score is best score (will be for first move)			
 			bestScore = score;	
 			bestMove = Move;
+MPI_Send(&bestScore, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+
+}
+// undo moves
+board[Move] = EMPTY; // else clear board
+	ply--; // decrement ply
 }
 
-/* OMP parallel section segment - each section in the parallel sections
-section is excecuted in parallel */
-
-#pragma omp parallel sections
-{
- #pragma omp section
-   {
-	// undo moves
-		board[Move] = EMPTY; // else clear board
-		ply--; // decrement ply
-	} // end this parallel section
-
- #pragma omp section
-   {
-	// tackle  move count is 0 as board is full
+// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
 		bestScore = FindThreeInARowAllBoard(board, side);	
-	}
-      } // end this parallel section
-     } // end parallel sections segment
-
-	// if not at top at tree, we return score
+}
+// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
-	}
-       }
+}
+
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
 	int index = 0; /* index for looping */
 
@@ -176,7 +180,7 @@ void InitialiseBoard (int *board) { /* pointer to our board array */
 	for (index = 0; index < 9; ++index) {
 		board[ConvertTo25[index]] = EMPTY /* all squares to empty */;
 	}
-       }
+	}
 
 void PrintBoard(const int *board) {
 
@@ -242,13 +246,12 @@ int GetWinningMove(int *board, const int side) {
 	return ourMove;
 }
 
-
 int GetComputerMove(int *board, const int side) {
 	ply=0;
 	positions=0;
 	maxPly=0;
 	int best = MinMax(board, side);
-	printf("Finished searching through positions in tree:%d max depth:%d best move:%d\n",positions,maxPly,best);
+ 	printf("Finished searching through positions in tree:%d max depth:%d best move:%d\n",positions,maxPly,best);
 	return best;
 }
 
@@ -352,9 +355,11 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 	}
 
-int main() {
-	srand(time(NULL)); /* seed random no generator - moves on board randomly */
+int main(int argc, char* argv []){
+// Initialize the MPI environment
+  MPI_Init(NULL, NULL);
+srand(time(NULL)); /* seed random no generator - moves on board randomly */
 	RunGame();
-	return 0;
-	}	
+return 0;
+}
 
