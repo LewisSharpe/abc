@@ -1,15 +1,14 @@
+// Tic Tac Toe - C+MPI version
+// Lewis Sharpe
+// 07.06.2017
+
+// compile: mpicc -o mpittt mpittt.c
+// run: mpiexec -n 2 ./mpittt
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include <pthread.h>
-#include <assert.h>
- 
-// compile: gcc -o pt_ttt pt_ttt.c -lpthread
-// run: ./pt_ttt
-
-// Lewis Sharpe
-
-#define NUM_THREADS     4
+#include <mpi.h>
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -25,28 +24,20 @@
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
 
-// var definitions
+/* var definitions */
 
 const int Directions[4] = {1, 5, 4, 6}; // times by -1 to go opposite direction
-
 const int ConvertTo25[9] = { /* positions in 25 array */
 	6,7,8,
 	11,12,13,
 	16,17,18,
 };
-
 const int InMiddle = 4;
 const int Corners[4] = { 0, 2, 6, 8 };
 
 int ply = 0; // how many moves deep into tree
 int positions = 0; // no of pos searched
 int maxPly = 0; // how deep we have went in tree
-
-/* create thread argument struct for thr_func() */
-typedef struct _thread_data_t {
-  int tid;
-  double stuff;
-} thread_data_t;
 
 int GetNumForDir (int startSq, const int dir, const int *board, const int us) {
 	int found = 0; 
@@ -102,16 +93,14 @@ int EvalForWin(const int *board, const int us) {
 	return 0;
 }
 
-/* thread function - multiple threads executing together */
-int MinMax(int *board, int side) {
-
-// recursive function calling - min max will call again and again through tree $
+int MinMax (int	*board, int side) {      
+// recursive function calling -	min max	will call again	and again through tree - to maximise score
 // check if there is a win
 // generate tree for all move for side (ply or opp)
-// loop moves , make move, min max on move to get score
+// loop	moves , make move, min max on move to get score
 // assess best score
 // end moves return bestscore
-
+	
 // defintions
 	int MoveList[9]; // 9 pos sqs on board
 	int MoveCount = 0; // count of move
@@ -121,15 +110,30 @@ int MinMax(int *board, int side) {
 	int Move; // current move
 	int index; // indexing for loop
 
-/* pthreads defintions */
-pthread_t thr[NUM_THREADS];
-  int i, rc;
-  // create a thread_data_t argument array
-  thread_data_t thr_data[NUM_THREADS];
+// Find out rank, size
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-/* pthread loop 1: executing position identification and reasoning */
-  for (i = 0; i < NUM_THREADS; ++i) {
+  // Get the name of the processor
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+  int name_len;
+    MPI_Get_processor_name(processor_name, &name_len);
 
+    // Print off a hello world message
+    printf("Hello world from processor %s, rank %d"
+         " out of %d processors\n",
+       processor_name, world_rank, world_size);
+
+if (world_size < 2) {
+// 2 processes needed.
+    fprintf(stderr, "World size must be greater than 1 for %s\n");
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  }
+
+
+	
 	if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
@@ -139,46 +143,40 @@ pthread_t thr[NUM_THREADS];
 		if(score != 0) { // if draw					
 			return score; // return score, stop searching, game won
 		}		
-			}	
-				}	
-// if no win, fill Move List
+	}
+	
+	// if no win, fill Move List
 	for(index = 0; index < 9; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
 			MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
 		}
 	}
-// loop all moves - put on board
+	
+	// loop all moves - put on board
 	for(index = 0; index < MoveCount; ++index) {
 		Move = MoveList[index];
-	        board[Move] = side;		
+		board[Move] = side;	
+		
 		ply++; // increment ply
 		score = -MinMax(board, side^1); // for opposing side
 		if(score > bestScore) { // if score is best score (will be for first move)			
 			bestScore = score;	
 			bestMove = Move;
 		}
-// undo moves
+	// undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
 	}
-/* pthread loop 2: executing move count and current position */
-  for (i = 0; i < NUM_THREADS; ++i) {
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
-	bestScore = FindThreeInARowAllBoard(board, side);	
+		bestScore = FindThreeInARowAllBoard(board, side);	
+		
 }
-// if not at top at tree, we return score
+	// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
-}
-/* pthread block: block until all threads complete */
-  for (i = 0; i < NUM_THREADS; ++i) {
-    pthread_join(thr[i], NULL);
-  }
- 
-  return EXIT_SUCCESS;
 }
 
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
@@ -256,7 +254,6 @@ int GetWinningMove(int *board, const int side) {
 	} 
 	return ourMove;
 }
-
 
 int GetComputerMove(int *board, const int side) {
 	ply=0;
@@ -367,10 +364,9 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 	}
 
-
-int main() {
+int main(int argc, char** arg) {
+  MPI_Init(NULL, NULL);
 	srand(time(NULL)); /* seed random no generator - moves on board randomly */
 	RunGame();
 	return 0;
-
-}
+	}	

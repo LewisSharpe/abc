@@ -1,15 +1,13 @@
+// Tic Tac Toe - Sequential C version
+// Lewis Sharpe
+// 07.06.2017 
+
+// compile: gcc -o gm_ttt gm_ttt.c
+// run: ./gm_ttt
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include <pthread.h>
-#include <assert.h>
- 
-// compile: gcc -o pt_ttt pt_ttt.c -lpthread
-// run: ./pt_ttt
-
-// Lewis Sharpe
-
-#define NUM_THREADS     4
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -25,28 +23,24 @@
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
 
-// var definitions
+/* var definitions */
 
-const int Directions[4] = {1, 5, 4, 6}; // times by -1 to go opposite direction
-
-const int ConvertTo25[9] = { /* positions in 25 array */
-	6,7,8,
-	11,12,13,
-	16,17,18,
+const int ConvertTo25[49] = { /* positions in 25 array */
+        11,12,13,14,15,16,17,
+	20,21,22,23,24,25,26,
+        29,30,31,32,33,34,35,
+	38,39,40,41,42,43,44,
+	47,48,49,50,51,52,53,
+	56,57,58,59,60,61,62,
+	65,66,67,68,69,70,71,
 };
 
-const int InMiddle = 4;
-const int Corners[4] = { 0, 2, 6, 8 };
-
+const int InMiddle = 41;
+const int Corners[4] = { 11, 17, 65, 71 };
+ 
 int ply = 0; // how many moves deep into tree
 int positions = 0; // no of pos searched
 int maxPly = 0; // how deep we have went in tree
-
-/* create thread argument struct for thr_func() */
-typedef struct _thread_data_t {
-  int tid;
-  double stuff;
-} thread_data_t;
 
 int GetNumForDir (int startSq, const int dir, const int *board, const int us) {
 	int found = 0; 
@@ -54,35 +48,20 @@ int GetNumForDir (int startSq, const int dir, const int *board, const int us) {
 		if(board[startSq] != us) {
 	break;
 	}
-	found++;
 	startSq += dir;
+	found++;
 }
 	return found;
 }
 
 int FindThreeInARow(const int *board, const int ourindex, const int us) {
-
-	int DirIndex = 0;
-	int Dir = 0;
-	int threeCount = 1;
-
-for(DirIndex - 0; DirIndex <4; ++DirIndex) {
-		Dir = Directions[DirIndex];
-		threeCount += GetNumForDir(ourindex + Dir, Dir, board, us);
-		threeCount += GetNumForDir(ourindex + Dir * -1, Dir * -1, board, us);
-		if (threeCount == 3) {
-			break;
-		}
-		threeCount = 1;
-		}
-		return threeCount;
 }
 
 int FindThreeInARowAllBoard(const int *board, const int us) {
 // after move made	
 int threeFound = 0;
 	int index;
-	for(index = 0; index < 9; ++index) { // for all 9 squares
+	for(index = 0; index < 49; ++index) { // for all 9 squares
 		if(board[ConvertTo25[index]] == us) { // if player move
 			if(FindThreeInARow(board, ConvertTo25[index], us) == 3) {				
 				threeFound = 1; // if move results 3 in row,confirm 
@@ -102,16 +81,14 @@ int EvalForWin(const int *board, const int us) {
 	return 0;
 }
 
-/* thread function - multiple threads executing together */
-int MinMax(int *board, int side) {
-
-// recursive function calling - min max will call again and again through tree $
+int MinMax (int	*board, int side) {      
+// recursive function calling -	min max	will call again	and again through tree - to maximise score
 // check if there is a win
 // generate tree for all move for side (ply or opp)
-// loop moves , make move, min max on move to get score
+// loop	moves , make move, min max on move to get score
 // assess best score
 // end moves return bestscore
-
+	
 // defintions
 	int MoveList[9]; // 9 pos sqs on board
 	int MoveCount = 0; // count of move
@@ -120,16 +97,7 @@ int MinMax(int *board, int side) {
 	int bestMove = -1; // best move with score
 	int Move; // current move
 	int index; // indexing for loop
-
-/* pthreads defintions */
-pthread_t thr[NUM_THREADS];
-  int i, rc;
-  // create a thread_data_t argument array
-  thread_data_t thr_data[NUM_THREADS];
-
-/* pthread loop 1: executing position identification and reasoning */
-  for (i = 0; i < NUM_THREADS; ++i) {
-
+	
 	if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
@@ -139,56 +107,50 @@ pthread_t thr[NUM_THREADS];
 		if(score != 0) { // if draw					
 			return score; // return score, stop searching, game won
 		}		
-			}	
-				}	
-// if no win, fill Move List
-	for(index = 0; index < 9; ++index) {
+	}
+	
+	// if no win, fill Move List
+	for(index = 0; index < 49; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
 			MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
 		}
 	}
-// loop all moves - put on board
+	
+	// loop all moves - put on board
 	for(index = 0; index < MoveCount; ++index) {
 		Move = MoveList[index];
-	        board[Move] = side;		
+		board[Move] = side;	
+		
 		ply++; // increment ply
 		score = -MinMax(board, side^1); // for opposing side
 		if(score > bestScore) { // if score is best score (will be for first move)			
 			bestScore = score;	
 			bestMove = Move;
 		}
-// undo moves
+	// undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
 	}
-/* pthread loop 2: executing move count and current position */
-  for (i = 0; i < NUM_THREADS; ++i) {
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
-	bestScore = FindThreeInARowAllBoard(board, side);	
+		bestScore = FindThreeInARowAllBoard(board, side);	
+		
 }
-// if not at top at tree, we return score
+	// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
 }
-/* pthread block: block until all threads complete */
-  for (i = 0; i < NUM_THREADS; ++i) {
-    pthread_join(thr[i], NULL);
-  }
- 
-  return EXIT_SUCCESS;
-}
 
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
 	int index = 0; /* index for looping */
 
-	for (index = 0; index < 25; ++index) {
+	for (index = 0; index < 81; ++index) {
 		board[index] = BORDER; /* all squares to border square */
 	}
 
-	for (index = 0; index < 9; ++index) {
+	for (index = 0; index < 49; ++index) {
 		board[ConvertTo25[index]] = EMPTY /* all squares to empty */;
 	}
 	}
@@ -199,8 +161,8 @@ void PrintBoard(const int *board) {
 	char pceChars[] = "OX|-";/* board chars */	
 	
 	printf("\n\nBoard:\n\n");
-	for(index = 0; index < 9; ++index) { /* for the 9 pos on board */
-		if(index!=0 && index%3==0) { /* if 3 pos on each line */
+	for(index = 0; index < 49; ++index) { /* for the 9 pos on board */
+		if(index!=0 && index%7==0) { /* if 3 pos on each line */
 			printf("\n\n");
 		}
 		printf("%4c",pceChars[board[ConvertTo25[index]]]);
@@ -222,7 +184,7 @@ int GetNextBest(const int *board) {
 	int index = 0; // indexing for looping
 	ourMove = -1; // next best not found
 	
-	for(index = 0; index < 4; index++) { // loop for no of coners
+	for(index = 0; index < 4; index++) { // loop for no of corners
 		ourMove = ConvertTo25[Corners[index]];
 		if(board[ourMove] == EMPTY) {
 			break;
@@ -239,7 +201,7 @@ int GetWinningMove(int *board, const int side) {
 	int winFound = 0;
 	int index = 0;
 	
-	for(index = 0; index < 9; ++index) {
+	for(index = 0; index < 49; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
 			ourMove = ConvertTo25[index];
 			board[ourMove] = side;
@@ -256,7 +218,6 @@ int GetWinningMove(int *board, const int side) {
 	} 
 	return ourMove;
 }
-
 
 int GetComputerMove(int *board, const int side) {
 	ply=0;
@@ -312,7 +273,7 @@ int GetHumanMove(const int *board) {
 
 int HasEmpty(const int *board) { /* Has board got empty sq */
 	int index = 0;
-	for (index = 0; index < 9; ++index) {
+	for (index = 0; index < 49; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) return 1;
 	}
 	return 0;
@@ -367,10 +328,19 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 	}
 
-
 int main() {
 	srand(time(NULL)); /* seed random no generator - moves on board randomly */
 	RunGame();
 	return 0;
+	}	
 
-}
+
+
+
+
+
+
+
+
+
+

@@ -9,7 +9,7 @@
 
 // Lewis Sharpe
 
-#define NUM_THREADS     4
+#define NUM_THREADS     32
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -160,7 +160,7 @@ pthread_t thr[NUM_THREADS];
 // undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
-	}
+}
 /* pthread loop 2: executing move count and current position */
   for (i = 0; i < NUM_THREADS; ++i) {
 	// tackle  move count is 0 as board is full
@@ -168,10 +168,12 @@ pthread_t thr[NUM_THREADS];
 	bestScore = FindThreeInARowAllBoard(board, side);	
 }
 // if not at top at tree, we return score
+ for (i = 0; i < NUM_THREADS; ++i) {
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
+}
 }
 /* pthread block: block until all threads complete */
   for (i = 0; i < NUM_THREADS; ++i) {
