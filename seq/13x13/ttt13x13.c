@@ -23,22 +23,27 @@
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
 
-int loopcount = 49;
+int loopcount = 169;
 
 /* var definitions */
-const int Directions[4] = {1, 7, 8, 14}; 
-const int ConvertTo25[49] = { /* positions in 25 array */
-        11,12,13,14,15,16,17,
-        20,21,22,23,24,25,26,
-        29,30,31,32,33,34,35,
-        38,39,40,41,42,43,44,
-        47,48,49,50,51,52,53,
-        56,57,58,59,60,61,62,
-        65,66,67,68,69,70,71,
+const int Directions[4] = {17, 29, 197, 209}; 
+const int ConvertTo25[169] = { /* positions in 25 array */
+        17,18,19,20,21,22,23,24,25,26,27,28,29,
+        32,33,34,35,36,37,38,39,40,41,42,43,44,
+        47,48,49,50,51,52,53,54,55,56,57,58,59,
+        62,63,64,65,66,67,68,69,70,71,72,73,74,
+        77,78,79,80,81,82,83,84,85,86,87,88,89,
+        92,93,94,95,96,97,98,99,100,101,102,103,104,
+        107,108,109,110,111,112,113,114,115,116,117,118,119,
+        122,123,124,125,126,127,128,129,130,131,132,133,134,
+        137,138,139,140,141,142,143,144,145,146,147,148,149,
+        152,153,154,155,156,157,158,159,160,161,162,163,164,
+        167,168,169,170,171,172,173,174,175,176,177,178,179,
+        182,183,184,185,186,187,188,189,190,191,192,193,194,
+        197,198,199,200,201,202,203,204,205,206,207,208,209,
 };
-
-const int InMiddle = 41;
-const int Corners[4] = { 11, 17, 65, 71 };
+const int InMiddle = 113;
+const int Corners[4] = { 17, 29, 197, 209 };
 
 int ply = 0; // how many moves deep into tree
 int positions = 0; // no of pos searched
@@ -107,7 +112,7 @@ int MinMax (int	*board, int side) {
 // end moves return bestscore
 	
 // defintions
-	int MoveList[49]; // 9 pos sqs on board
+	int MoveList[169]; // 9 pos sqs on board
 	int MoveCount = 0; // count of move
 	int bestScore = -2;
 	int score = -2; // current score of move
@@ -127,10 +132,10 @@ int MinMax (int	*board, int side) {
 	}
 	
 	// if no win, fill Move List
-	for(index = 0; index < 49; ++index) {
+	for(index = 0; index < 11; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
-			MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
-		}
+	MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
+}
 	}
 	
 	// loop all moves - put on board
@@ -162,7 +167,7 @@ int MinMax (int	*board, int side) {
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
 	int index = 0; /* index for looping */
 
-	for (index = 0; index < 82; ++index) {
+	for (index = 0; index < 225; ++index) {
 		board[index] = BORDER; /* all squares to border square */
 	}
 	for (index = 0; index < loopcount; ++index) {
@@ -176,8 +181,8 @@ void PrintBoard(const int *board) {
 	char pceChars[] = "OX|-";/* board chars */	
 	
 	printf("\n\nBoard:\n\n");
-	for(index = 0; index < loopcount; ++index) { /* for the 9 pos on board */
-		if(index!=0 && index%7==0) { /* if 3 pos on each line */
+	for(index = 0; index < 169; ++index) { /* for the 9 pos on board */
+		if(index!=0 && index%13==0) { /* if 3 pos on each line */
 			printf("\n\n");
 		}
 		printf("%4c",pceChars[board[ConvertTo25[index]]]);
@@ -303,7 +308,7 @@ printf("%s TIC TAC TOE \n", KRED);
 	int GameOver = 0;
 	int Side = NOUGHTS;
 	int LastMoveMade = 0;
-	int board[81];
+	int board[225];
 
 	InitialiseBoard(&board[0]);
 	PrintBoard(&board[0]);
