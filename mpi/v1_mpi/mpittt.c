@@ -24,6 +24,11 @@
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
 
+#define MSGLEN 2048
+#define TAG 100
+void print_time ( struct timeval tbegin, struct timeval tend );
+
+
 /* var definitions */
 
 const int Directions[4] = {1, 5, 4, 6}; // times by -1 to go opposite direction
@@ -110,28 +115,25 @@ int MinMax (int	*board, int side) {
 	int Move; // current move
 	int index; // indexing for loop
 
-// Find out rank, size
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+float message [MSGLEN];    /* message buffer               */
+  int rank,                  /* rank of task in communicator */
+      i;
+  MPI_Status status;         /* status of communication      */
+  struct timeval tbegin,     /* used to measure elapsed time */
+                 tend;
 
-  // Get the name of the processor
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-  int name_len;
-    MPI_Get_processor_name(processor_name, &name_len);
+MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+//  printf ( " Process %d initialized\n", rank );
 
-    // Print off a hello world message
-//    printf("Hello world from processor %s, rank %d"
-  //       " out of %d processors\n",
-    //   processor_name, world_rank, world_size);
+if ( rank == 0 )  {
+    for (i=0; i<MSGLEN; i++) message[i] = 100;
+    printf ( " Task %d sending message\n", rank );
+    gettimeofday ( &tbegin, (struct timezone*)0 );
+    MPI_Send ( score, MSGLEN, MPI_FLOAT, 1, TAG, MPI_COMM_WORLD );
+    gettimeofday ( &tend, (struct timezone*)0 );   
+    print_time ( tbegin, tend);
+}
 
-if (world_size < 2) {
-// 2 processes needed.
-    fprintf(stderr, "World size must be greater than 1 for %s\n");
-    MPI_Abort(MPI_COMM_WORLD, 1);
-  }
-	
 	if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
@@ -175,6 +177,14 @@ if (world_size < 2) {
 		return bestScore;	
 	else 
 		return bestMove;	
+}
+
+void print_time ( struct timeval tbegin, struct timeval tend )
+{
+  int dt;
+  dt = ( tend.tv_sec - tbegin.tv_sec ) * 1000000 + tend.tv_usec 
+    - tbegin.tv_usec;
+  printf ( " Elapsed time for send = %8d uSec\n", dt );
 }
 
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
@@ -362,9 +372,9 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 	}
 
-int main(int argc, char** arg) {
-  MPI_Init(NULL, NULL);
+int main(int argc, char** argv) {
+ MPI_Init( &argc, &argv );
 	srand(time(NULL)); /* seed random no generator - moves on board randomly */
 	RunGame();
 	return 0;
-	}	
+	}
