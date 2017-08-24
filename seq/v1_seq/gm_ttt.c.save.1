@@ -1,14 +1,13 @@
-// Tic Tac Toe - C+MPI version
+// Tic Tac Toe - Sequential C version
 // Lewis Sharpe
-// 16.08.2017
+// 07.06.2017 
 
-// compile: mpicc -o mpittt mpittt.c
-// run: mpiexec -n 2 ./mpittt
+// compile: gcc -o gm_ttt gm_ttt.c
+// run: ./gm_ttt
 
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include <mpi.h>
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -23,10 +22,6 @@
 /* enum int const chars */
 enum { NOUGHTS, CROSSES, BORDER, EMPTY };
 enum { HUMANWIN, COMPWIN, DRAW };
-
-#define MSGLEN 4
-#define TAG 100
-void print_time ( struct timeval tbegin, struct timeval tend );
 
 /* var definitions */
 
@@ -113,20 +108,7 @@ int MinMax (int	*board, int side) {
 	int bestMove = -1; // best move with score
 	int Move; // current move
 	int index; // indexing for loop
-
-float message [score];    /* message buffer               */
-  int rank[MSGLEN],                  /* rank of task in communicator */
-      i;
-  MPI_Status status;         /* status of communication      */
-  struct timeval tbegin,     /* used to measure elapsed time */
-                 tend;
-
-MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-//  printf ( " Process %d initialized\n", rank );
-
- if ( rank == 0 )  {
-   for (i=0; i<MSGLEN; i++) message[i] = 100;
-
+	
 	if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
@@ -135,15 +117,9 @@ MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 		score = EvalForWin(board, side); // is current pos a win
 		if(score != 0) { // if draw					
 			return score; // return score, stop searching, game won
-		}			
+		}		
 	}
-printf ( " Task %d sending message\n", rank );
-    gettimeofday ( &tbegin, (struct timezone*)0 );
-    MPI_Send ( message, MSGLEN, MPI_FLOAT, 1, TAG, MPI_COMM_WORLD );
-    gettimeofday ( &tend, (struct timezone*)0 );   
-    print_time ( tbegin, tend );
-}
-
+	
 	// if no win, fill Move List
 	for(index = 0; index < 9; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
@@ -168,22 +144,14 @@ printf ( " Task %d sending message\n", rank );
 	}
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
-		bestScore = FindThreeInARowAllBoard(board, side);		
+		bestScore = FindThreeInARowAllBoard(board, side);	
+		
 }
-
 	// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
-}
-
-void print_time ( struct timeval tbegin, struct timeval tend )
-{
-  int dt;
-  dt = ( tend.tv_sec - tbegin.tv_sec ) * 1000000 + tend.tv_usec 
-    - tbegin.tv_usec;
-  printf ( " Elapsed time for send = %8d uSec\n", dt );
 }
 
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
@@ -268,11 +236,6 @@ int GetComputerMove(int *board, const int side) {
 	maxPly=0;
 	int best = MinMax(board, side);
 	printf("Finished searching through positions in tree:%d max depth:%d best move:%d\n",positions,maxPly,best);
-// Get the name of the processor
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int name_len;
-    MPI_Get_processor_name(processor_name, &name_len);
-printf(processor_name);
 	return best;
 }
 
@@ -376,9 +339,19 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 	}
 
-int main(int argc, char** argv) {
- MPI_Init( &argc, &argv );
+int main() {
 	srand(time(NULL)); /* seed random no generator - moves on board randomly */
 	RunGame();
 	return 0;
-	}
+	}	
+
+
+
+
+
+
+
+
+
+
+

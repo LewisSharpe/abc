@@ -251,7 +251,8 @@ int GetHumanMove(const int *board) {
 		printf("Please enter a move from 1 to 9:");		
 		fgets(userInput, 3, stdin);
 		fflush(stdin); /* fgets take first 3 chars and flush rest */ 
-		
+	
+	
 		if(strlen(userInput) != 2) {
 			printf("Shucks! You entered an invalid strlen()! \n");
 			continue;			

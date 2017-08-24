@@ -127,17 +127,17 @@ int MinMax (int	*board, int side) {
 	}
 	
 	// if no win, fill Move List
-	for(index = 0; index < 11; ++index) {
+	for(index = 0; index < 49; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
 	MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
 }
 	}
 	
 	// loop all moves - put on board
-	for(index = 0; index < MoveCount; ++index) {
+	for(index = 0; index < MoveCount/16; ++index) {
 		Move = MoveList[index];
 		board[Move] = side;	
-		
+
 		ply++; // increment ply
 		score = -MinMax(board, side^1); // for opposing side
 		if(score > bestScore) { // if score is best score (will be for first move)			
@@ -244,15 +244,16 @@ int GetComputerMove(int *board, const int side) {
 
 int GetHumanMove(const int *board) {
 	
-	char userInput[4]; // 4
-	
+	char userInput [4]; // 4
+
 	int moveOk = 0;
 	int move = -1;
-	
+	int i;
+
 	while (moveOk == 0) {
-	
 		printf("Please enter a move from 1 to 49:");		
-		fgets(userInput, 3, stdin);
+//		move = 8;
+fgets(userInput, 3, stdin);
 		fflush(stdin); /* fgets take first 3 chars and flush rest */ 
 		
 		if(strlen(userInput) != 2) {
