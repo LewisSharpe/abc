@@ -132,14 +132,14 @@ int MinMax (int	*board, int side) {
 	}
 	
 	// if no win, fill Move List
-	for(index = 0; index < 11; ++index) {
+	for(index = 0; index < 100; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
 	MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
 }
 	}
 	
 	// loop all moves - put on board
-	for(index = 0; index < MoveCount; ++index) {
+	for(index = 0; index < MoveCount/50; ++index) {
 		Move = MoveList[index];
 		board[Move] = side;	
 		

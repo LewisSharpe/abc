@@ -1,13 +1,14 @@
-// Tic Tac Toe - Sequential C version
+// Tic Tac Toe - OpenMP C Parallel/Distributed version - Version 2 - 7x7 Grid
 // Lewis Sharpe
-// 07.06.2017 
+// 25.08.2017 
 
-// compile: gcc -o ttt7x7 ttt7x7.c
+// compile: gcc -fopenmp -o ttt7x7_omp ttt7x7_omp.c
 // run: ./ttt7x7
 
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include<omp.h>
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -144,19 +145,33 @@ int MinMax (int	*board, int side) {
 			bestScore = score;	
 			bestMove = Move;
 		}
+/* OMP parallel section segment - each section in the parallel sections
+section is excecuted in parallel */
+
+#pragma omp parallel sections
+{
+ #pragma omp section
+   {
 	// undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
-	}
+	} // end this parallel section
+
+#pragma omp section
+   {
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
 		bestScore = FindThreeInARowAllBoard(board, side);	
 }
+} // end parallel section
+} // end parallel sections segment
+
 	// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
+}
 }
 
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
@@ -252,7 +267,6 @@ int GetHumanMove(const int *board) {
 
 	while (moveOk == 0) {
 		printf("Please enter a move from 1 to 49:");		
-//		move = 8;
 fgets(userInput, 3, stdin);
 		fflush(stdin); /* fgets take first 3 chars and flush rest */ 
 		
@@ -348,8 +362,6 @@ int main() {
 	RunGame();
 	return 0;
 	}	
-
-
 
 
 

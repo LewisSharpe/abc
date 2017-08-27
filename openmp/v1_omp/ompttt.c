@@ -166,6 +166,7 @@ section is excecuted in parallel */
 		return bestMove;	
 	}
        }
+
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
 	int index = 0; /* index for looping */
 

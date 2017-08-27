@@ -173,8 +173,8 @@ pthread_t thr[NUM_THREADS];
 		return bestScore;	
 	else 
 		return bestMove;	
-}
-}
+	}
+		}
 /* pthread block: block until all threads complete */
   for (i = 0; i < NUM_THREADS; ++i) {
     pthread_join(thr[i], NULL);
