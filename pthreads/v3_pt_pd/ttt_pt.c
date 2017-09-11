@@ -1,9 +1,9 @@
-// Tic Tac Toe - PThreads Parallel C version - Version 2 - 7x7 Grid
+// Tic Tac Toe - Sequential C version - Version 2 - 7x7 Grid
 // Lewis Sharpe
 // 25.08.2017 
 
-// compile: gcc -o ttt7x7_pt ttt7x7_pt.c -lpthread
-// run: ./ttt7x7_pt
+// compile: gcc -o ttt_pt ttt_pt.c -lpthread
+// run: ./ttt_pt
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -110,6 +110,80 @@ int EvalForWin(const int *board, const int us) {
 }
 
 int MinMax (int	*board, int side) {      
+// recursive function calling -	min max	will call again	and again through tree - to maximise score
+// check if there is a win
+// generate tree for all move for side (ply or opp)
+// loop	moves , make move, min max on move to get score
+// assess best score
+// end moves return bestscore
+	
+// defintions
+	int MoveList[49]; // 9 pos sqs on board
+	int MoveCount = 0; // count of move
+	int bestScore = -2;
+	int score = -2; // current score of move
+	int bestMove = -1; // best move with score
+	int Move; // current move
+	int index; // indexing for loop
+
+/* pthreads defintions */
+pthread_t thr[NUM_THREADS];
+  int i, rc;
+  // create a thread_data_t argument array
+  thread_data_t thr_data[NUM_THREADS];
+
+/* pthread loop 1: executing position identification and reasoning */
+  for (i = 0; i < NUM_THREADS; ++i) {
+
+	if(ply > maxPly) // if current pos depper than max dep
+ 		 maxPly = ply; // max ply set to current pos	
+	positions++; // increment positions, as visited new position
+	
+	if(ply > 0) {
+		score = EvalForWin(board, side); // is current pos a win
+		if(score != 0) { // if draw					
+			return score; // return score, stop searching, game won
+		}		
+	}
+}
+	
+	// if no win, fill Move List
+	for(index = 0; index < 35; ++index) {
+		if( board[ConvertTo25[index]] == EMPTY) {
+	MoveList[MoveCount++] = ConvertTo25[index]; // current pos on loop
+}
+	}
+	
+	// loop all moves - put on board
+	for(index = 0; index < MoveCount/16; ++index) {
+		Move = MoveList[index];
+		board[Move] = side;	
+
+		ply++; // increment ply
+		score = -MinMax(board, side^1); // for opposing side
+		if(score > bestScore) { // if score is best score (will be for first move)			
+			bestScore = score;	
+			bestMove = Move;
+		}
+	// undo moves
+		board[Move] = EMPTY; // else clear board
+		ply--; // decrement ply
+	}
+/* pthread loop 1: executing position identification and reasoning */
+  for (i = 0; i < NUM_THREADS; ++i) {
+	// tackle  move count is 0 as board is full
+	if(MoveCount==0) {
+		bestScore = FindThreeInARowAllBoard(board, side);	
+}
+	// if not at top at tree, we return score
+	if(ply!=0)
+		return bestScore;	
+	else 
+		return bestMove;	
+}
+        }
+
+int MinMax2 (int	*board, int side) {      
 // recursive function calling -	min max	will call again	and again through tree - to maximise score
 // check if there is a win
 // generate tree for all move for side (ply or opp)
@@ -266,48 +340,13 @@ int GetComputerMove(int *board, const int side) {
 	return best;
 }
 
-int GetHumanMove(const int *board) {
-	
-	char userInput [4]; // 4
-
-	int moveOk = 0;
-	int move = -1;
-	int i;
-
-	while (moveOk == 0) {
-		printf("Please enter a move from 1 to 49:");		
-//		move = 8;
-fgets(userInput, 3, stdin);
-		fflush(stdin); /* fgets take first 3 chars and flush rest */ 
-		
-		if(strlen(userInput) != 2) {
-			printf("Shucks! You entered an invalid strlen()! \n");
-			continue;			
-		}
-		
-	if( sscanf(userInput, "%d", &move) != 1) {
-			move = -1;
-			printf("Shucks! You entered an invalid sscanf()! \n");
-			continue;
-		}
-		
-		if( move < 1 || move > 49) {
-			move = -1;
-			printf("Shucks! You entered an invalid range! \n");
-			continue;
-		}
-		
-		move--; // Zero indexing
-		
-		if( board[ConvertTo25[move]]!=EMPTY) {
-			move=-1;
-			printf("Shucks! Square not available\n");
-			continue;
-		}
-		moveOk = 1;
-	}
-	printf("You are selecting position...%d\n",(move+1));
-	return ConvertTo25[move];
+int GetHumanMove(int *board, const int side) {
+        ply=0;
+	positions=0;
+        maxPly=0;
+        int best = MinMax2(board, side);
+        printf("Finished searching through positions in tree:%d max depth:%d best");
+        return best;
 }
 
 int HasEmpty(const int *board) { /* Has board got empty sq */
@@ -334,7 +373,7 @@ printf("%s TIC TAC TOE \n", KRED);
 
 	while (!GameOver) { // while game is not over
 	if (Side==NOUGHTS) {
-		LastMoveMade = GetHumanMove (&board[0]);
+		LastMoveMade = GetHumanMove (&board[0], Side);
 		MakeMove(&board[0], LastMoveMade, Side);
 		Side=CROSSES;
 printf("%s COMPUTER MOVE \n", KBLU);	
@@ -372,8 +411,3 @@ int main() {
 	RunGame();
 	return 0;
 	}	
-
-
-
-
-
