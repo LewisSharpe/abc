@@ -16,7 +16,7 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:112 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:15 max depth:14 best move:12
 
 
@@ -36,7 +36,7 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:328 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:13 max depth:12 best move:14
 
 
@@ -56,7 +56,7 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:512 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:11 max depth:10 best move:16
 
 
@@ -76,7 +76,7 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:664 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:9 max depth:8 best move:20
 
 
@@ -96,7 +96,7 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:784 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:7 max depth:6 best move:22
 
 
@@ -116,7 +116,7 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:872 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:5 max depth:4 best move:24
 
 
@@ -136,7 +136,7 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:928 best[34m COMPUTER MOVE 
 Finished searching through positions in tree:3 max depth:2 best move:26
 
 
@@ -156,6 +156,6 @@ Board:
 
    -   -   -   -   -   -   -
 [0m PLAYER MOVE 
-Finished searching through positions in tree:-8 max depth:1 best[34m COMPUTER MOVE 
+Finished searching through positions in tree:300000 max depth:952 best[34m COMPUTER MOVE 
 Game over!
 Human Wins
