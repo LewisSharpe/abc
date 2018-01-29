@@ -9,6 +9,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "time.h"
+#include <unistd.h> // for sleep() and usleep()
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -135,7 +136,7 @@ int MinMax (int	*board, int side) {
 	}
 	
 	// loop all moves - put on board
-	for(index = 0; index < MoveCount/35; ++index) {
+	for(index = 0; index < MoveCount/49; ++index) {
 		Move = MoveList[index];
 		board[Move] = side;	
 
@@ -196,7 +197,7 @@ int MinMax2 (int	*board, int side) {
 	}
 	
 	// loop all moves - put on board
-	for(index = 0; index < MoveCount/35; ++index) {
+	for(index = 0; index < MoveCount/49; ++index) {
 		Move = MoveList[index];
 		board[Move] = side;	
 
@@ -337,17 +338,23 @@ printf("%s TIC TAC TOE \n", KRED);
 
 	while (!GameOver) { // while game is not over
 	if (Side==NOUGHTS) {
+struct timeval tv3, tv4;
+gettimeofday(&tv3, NULL);
 		LastMoveMade = GetHumanMove (&board[0], Side);
 		MakeMove(&board[0], LastMoveMade, Side);
 		Side=CROSSES;
-printf("%s COMPUTER MOVE \n", KBLU);	
+gettimeofday(&tv4, NULL);
+printf ("Move time = %f seconds\n",
+         (double) (tv4.tv_usec - tv3.tv_usec) / 1000000 +
+         (double) (tv4.tv_sec - tv3.tv_sec));
+printf("%s COMPUTER MOVE 1 \n", KBLU);	
 }
 	else {
 	LastMoveMade = GetComputerMove(&board[0], Side);
 	MakeMove(&board[0], LastMoveMade, Side);
 	Side=NOUGHTS;
-	PrintBoard(&board[0]);
-printf("%s PLAYER MOVE \n", KNRM);
+  PrintBoard(&board[0]);
+printf("%s COMPUTER 2 MOVE \n", KNRM);
 	}
 
 // if three in a row exists Game is over
@@ -355,9 +362,9 @@ printf("%s PLAYER MOVE \n", KNRM);
 			printf("Game over!\n");
 			GameOver = 1;
 			if(Side==NOUGHTS) {
-				printf("Computer Wins\n");
+				printf("Computer 1 Wins\n");
 			} else {
-				printf("Human Wins\n");
+				printf("Computer 2 Wins\n");
 			}
 		}	
 
@@ -370,6 +377,8 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 
 int main() {
+  sleep(300); // wait 60 seconds
+//    usleep(10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000) // wait 10000 microseconds (1000000s are 1 second)
 struct timeval tv1, tv2;
 gettimeofday(&tv1, NULL);
 	srand(time(NULL)); /* seed random no generator - moves on board randomly */

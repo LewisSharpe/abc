@@ -10,6 +10,7 @@
 #include "string.h"
 #include<omp.h>
 #include "time.h"
+#include <unistd.h>
 
 /* text colour code declarations */      
 #define KNRM  "\x1B[0m"
@@ -107,7 +108,7 @@ int MinMax2 (int	*board, int side) {
 // loop	moves , make move, min max on move to get score
 // assess best score
 // end moves return bestscore
-	
+
 // defintions
 	int MoveList[49]; // 9 pos sqs on board
 	int MoveCount = 0; // count of move
@@ -117,6 +118,8 @@ int MinMax2 (int	*board, int side) {
 	int Move; // current move
 	int index; // indexing for loop
 
+// #pragma omp critical
+//{
 	if(ply > maxPly) // if current pos depper than max dep
  		 maxPly = ply; // max ply set to current pos	
 	positions++; // increment positions, as visited new position
@@ -126,8 +129,8 @@ int MinMax2 (int	*board, int side) {
 		if(score != 0) { // if draw					
 			return score; // return score, stop searching, game won
 		}		
-	}
-	
+	}	
+//}
 	// if no win, fill Move List
 	for(index = 0; index < 49; ++index) {
 		if( board[ConvertTo25[index]] == EMPTY) {
@@ -136,7 +139,7 @@ int MinMax2 (int	*board, int side) {
 	}
 	
 	// loop all moves - put on board
-	for(index = 0; index < MoveCount/35; ++index) {
+	for(index = 0; index < MoveCount/49; ++index) {
 		Move = MoveList[index];
 		board[Move] = side;	
 
@@ -146,33 +149,25 @@ int MinMax2 (int	*board, int side) {
 			bestScore = score;	
 			bestMove = Move;
 		}
-/* OMP parallel section segment - each section in the parallel sections
-section is excecuted in parallel */
-
-#pragma omp parallel sections
-{
- #pragma omp section
-   {
+//#pragma omp critical
+  // {
 	// undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
-	} // end this parallel section
+//	} // end this parallel section
 
-#pragma omp section
+#pragma omp critical
    {
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
 		bestScore = FindThreeInARowAllBoard(board, side);	
 }
-} // end parallel section
-} // end parallel sections segment
-
+}
 	// if not at top at tree, we return score
 	if(ply!=0)
 		return bestScore;	
 	else 
 		return bestMove;	
-}
 }
 
 int MinMax (int	*board, int side) {      
@@ -182,6 +177,8 @@ int MinMax (int	*board, int side) {
 // loop	moves , make move, min max on move to get score
 // assess best score
 // end moves return bestscore
+
+//#pragma omp barrier {
 	
 // defintions
 	int MoveList[49]; // 9 pos sqs on board
@@ -211,7 +208,7 @@ int MinMax (int	*board, int side) {
 	}
 	
 	// loop all moves - put on board
-	for(index = 0; index < MoveCount/35; ++index) {
+	for(index = 0; index < MoveCount/49; ++index) {
 		Move = MoveList[index];
 		board[Move] = side;	
 
@@ -221,26 +218,21 @@ int MinMax (int	*board, int side) {
 			bestScore = score;	
 			bestMove = Move;
 		}
-/* OMP parallel section segment - each section in the parallel sections
-section is excecuted in parallel */
 
-#pragma omp parallel sections
-{
- #pragma omp section
-   {
+ //#pragma omp critical
+  // {
 	// undo moves
 		board[Move] = EMPTY; // else clear board
 		ply--; // decrement ply
-	} // end this parallel section
+//	} // end this parallel section
 
-#pragma omp section
+#pragma omp critical
    {
 	// tackle  move count is 0 as board is full
 	if(MoveCount==0) {
 		bestScore = FindThreeInARowAllBoard(board, side);	
 }
-} // end parallel section
-} // end parallel sections segment
+} 
 
 	// if not at top at tree, we return score
 	if(ply!=0)
@@ -248,7 +240,7 @@ section is excecuted in parallel */
 	else 
 		return bestMove;	
 }
-}
+//}
 
 void InitialiseBoard (int *board) { /* pointer to our board array */ 
 	int index = 0; /* index for looping */
@@ -366,9 +358,15 @@ printf("%s TIC TAC TOE \n", KRED);
 
 	while (!GameOver) { // while game is not over
 	if (Side==NOUGHTS) {
+struct timeval tv3, tv4;
+gettimeofday(&tv3, NULL);
 		LastMoveMade = GetHumanMove (&board[0], Side);
 		MakeMove(&board[0], LastMoveMade, Side);
 		Side=CROSSES;
+gettimeofday(&tv4, NULL);
+printf ("Move time = %f seconds\n",
+         (double) (tv4.tv_usec - tv3.tv_usec) / 1000000 +
+         (double) (tv4.tv_sec - tv3.tv_sec));
 printf("%s COMPUTER MOVE \n", KBLU);	
 }
 	else {
@@ -400,6 +398,7 @@ printf("%s PLAYER MOVE \n", KNRM);
 	}
 
 int main() {
+sleep(300);
 struct timeval tv1, tv2;
 gettimeofday(&tv1, NULL);
 	srand(time(NULL)); /* seed random no generator - moves on board randomly */

@@ -16,8 +16,8 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000023 seconds
-[34m COMPUTER MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000007 seconds
+[34m COMPUTER MOVE 1 
 Finished searching through positions in tree:13 max depth:12 best move:12
 
 
@@ -36,9 +36,9 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-[0m PLAYER MOVE 
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000002 seconds
-[34m COMPUTER MOVE 
+[0m COMPUTER 2 MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000001 seconds
+[34m COMPUTER MOVE 1 
 Finished searching through positions in tree:11 max depth:10 best move:14
 
 
@@ -57,9 +57,9 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-[0m PLAYER MOVE 
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000002 seconds
-[34m COMPUTER MOVE 
+[0m COMPUTER 2 MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000001 seconds
+[34m COMPUTER MOVE 1 
 Finished searching through positions in tree:9 max depth:8 best move:16
 
 
@@ -78,9 +78,9 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-[0m PLAYER MOVE 
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000002 seconds
-[34m COMPUTER MOVE 
+[0m COMPUTER 2 MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000002 seconds
+[34m COMPUTER MOVE 1 
 Finished searching through positions in tree:7 max depth:6 best move:20
 
 
@@ -99,9 +99,9 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-[0m PLAYER MOVE 
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000002 seconds
-[34m COMPUTER MOVE 
+[0m COMPUTER 2 MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000002 seconds
+[34m COMPUTER MOVE 1 
 Finished searching through positions in tree:5 max depth:4 best move:22
 
 
@@ -120,9 +120,9 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-[0m PLAYER MOVE 
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000002 seconds
-[34m COMPUTER MOVE 
+[0m COMPUTER 2 MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000002 seconds
+[34m COMPUTER MOVE 1 
 Finished searching through positions in tree:3 max depth:2 best move:24
 
 
@@ -141,9 +141,10 @@ Board:
    -   -   -   -   -   -   -
 
    -   -   -   -   -   -   -
-[0m PLAYER MOVE 
-Finished searching through positions in tree:0 max depth:-1421027400 bestMove time = 0.000002 seconds
-[34m COMPUTER MOVE 
+[0m COMPUTER 2 MOVE 
+Finished searching through positions in tree:-14 max depth:1 bestMove time = 0.000002 seconds
+[34m COMPUTER MOVE 1 
 Game over!
-Human Wins
-Total time = 0.000205 seconds
+Computer 2 Wins
+Total time = 0.000202 seconds
+
